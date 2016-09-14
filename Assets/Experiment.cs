@@ -115,7 +115,8 @@ public class Experiment : MonoBehaviour {
 
 			currentTrialCount--;
 		}
-		
+
+		dataRecorder.WriteEverythingToFile();
 	}
 
 	private void BeginAwaitAnButtonPress()

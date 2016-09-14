@@ -24,11 +24,16 @@ public class CSVFileWriter : MonoBehaviour
         
     }
 
+    public void WriteEverythingToFile()
+    {
+        fs.Flush();
+    }
+
     public void OnDestroy()
     {
         if (fs != null)
         {
-            fs.Flush();
+            WriteEverythingToFile();
             fs.Close();
         }
     }
