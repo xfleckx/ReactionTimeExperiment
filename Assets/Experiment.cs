@@ -4,8 +4,16 @@ using UnityEngine.Assertions;
 using System;
 public class Experiment : MonoBehaviour {
 
+	public const string MISS = "MISS";
+
+	public const string HIT = "HIT";
+
 	public int TrialsToDo = 10;
 	private int currentTrialCount = 0;
+
+	public float timeShowingFocusCross = 1f;
+
+	public float timeResponseTimeOut = 1f;
 
 	public float timeBetweenColorChanges = 2f;
 	
@@ -65,24 +73,13 @@ public class Experiment : MonoBehaviour {
 		yield return ReturnToStartMenu();
 	}
 
-	IEnumerator ReturnToStartMenu()
-	{
-		targetSphere.SetActive(false);
-
-		focusCross.SetActive(false);
-
-		userInterface.SetActive(true);
-
-		yield return null;
-	}
-
 	IEnumerator RunTrials()
 	{
 		while(currentTrialCount > 0)
 		{
 			focusCross.SetActive(true);
 
-			yield return new WaitForSecondsRealtime(1f);
+			yield return new WaitForSecondsRealtime(timeShowingFocusCross);
 
 			focusCross.SetActive(false);
 
@@ -90,7 +87,7 @@ public class Experiment : MonoBehaviour {
 
 			targetSphere.SetActive(true);
 
-			float timeToWaitForTheNextColorChange = GetTimeBetweenColorChanges();
+			float timeToWaitForTheNextColorChange = GetRandomOffsetForColorChange();
 
 			yield return new WaitForSecondsRealtime(timeToWaitForTheNextColorChange);
 
@@ -102,13 +99,13 @@ public class Experiment : MonoBehaviour {
 
 			BeginAwaitAnButtonPress();
 			
-			yield return new WaitForSecondsRealtime(1f);
+			yield return new WaitForSecondsRealtime(timeResponseTimeOut);
 
 			EndAwaitAnButtonPress();
 
 			if (!aButtonHasBeenPressed)
 			{
-				dataRecorder.Write(new string[] { Time.realtimeSinceStartup.ToString(), "MISS" });
+				dataRecorder.Write(new string[] { Time.realtimeSinceStartup.ToString(), MISS });
 			}
 
 			targetSphere.SetActive(false);
@@ -119,6 +116,17 @@ public class Experiment : MonoBehaviour {
 		dataRecorder.WriteEverythingToFile();
 	}
 
+	IEnumerator ReturnToStartMenu()
+	{
+		targetSphere.SetActive(false);
+
+		focusCross.SetActive(false);
+
+		userInterface.SetActive(true);
+
+		yield return null;
+	}
+	
 	private void BeginAwaitAnButtonPress()
 	{
 		awaitAnButtonPress = true;
@@ -138,10 +146,10 @@ public class Experiment : MonoBehaviour {
 		if (!awaitAnButtonPress)
 			return;
 		
-		string result = "MISS";
+		string result = MISS;
 
 		if (currentMaterial == targetMaterial)
-			result = "HIT";
+			result = HIT;
 
 		dataRecorder.Write(new string[] { Time.realtimeSinceStartup.ToString(), evt.reactionTime.ToString(), result });
 
@@ -164,7 +172,7 @@ public class Experiment : MonoBehaviour {
 		return sphereRenderer.sharedMaterial;
 	}
 
-	private float GetTimeBetweenColorChanges()
+	private float GetRandomOffsetForColorChange()
 	{
 		if(UseRandomRangeAsTimeBetweenColorChanges)
 		{

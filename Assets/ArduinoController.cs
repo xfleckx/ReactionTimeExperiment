@@ -6,13 +6,16 @@ using System.IO.Ports;
 
 public class ArduinoController : MonoBehaviour
 {
+    /// <summary>
+    /// An UnityEvent implementation as a custom event containing informations on what happens on the arduino
+    /// </summary>
     public ArduinoSignalEvent WhenArduinoHasAResult;
 
     public int BaudRate = 9600;
     public string ComId = "COM3"; // default for arduino uno
 
     private SerialPort stream;
-    // Use this for initialization
+
     void Start()
     {
         try
@@ -30,7 +33,7 @@ public class ArduinoController : MonoBehaviour
 
         StartCoroutine(
             AsynchronousReadFromArduino(
-                // lambda expression
+                // lambda expression - anonymous function
                 (incomingString) =>
                 {
                     if (WhenArduinoHasAResult.GetPersistentEventCount() > 0)
@@ -124,6 +127,8 @@ public class ArduinoController : MonoBehaviour
 
 }
 
+#region Using Unity Events
+
 [Serializable]
 public class ArduinoEvent
 {
@@ -136,3 +141,5 @@ public class ArduinoSignalEvent : UnityEvent<ArduinoEvent>
 {
     // it's empty - it's intented!
 }
+
+#endregion
