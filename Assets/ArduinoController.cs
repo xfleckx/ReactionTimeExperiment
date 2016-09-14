@@ -4,6 +4,9 @@ using System;
 using UnityEngine.Events;
 using System.IO.Ports;
 
+/// <summary>
+/// This class is inspired by http://www.alanzucconi.com/2015/10/07/how-to-integrate-arduino-with-unity/
+/// </summary>
 public class ArduinoController : MonoBehaviour
 {
     /// <summary>
@@ -89,9 +92,8 @@ public class ArduinoController : MonoBehaviour
 
     public IEnumerator AsynchronousReadFromArduino(Action<string> callback, Action fail = null, float timeout = float.PositiveInfinity)
     {
-        DateTime initialTime = DateTime.Now;
-        DateTime nowTime;
-        TimeSpan diff = default(TimeSpan);
+        var initialTime = Time.realtimeSinceStartup;
+        var timeAsyncReadIsRunning = 0f;
 
         string dataString = null;
 
@@ -114,10 +116,10 @@ public class ArduinoController : MonoBehaviour
             else
                 yield return new WaitForSeconds(0.05f);
 
-            nowTime = DateTime.Now;
-            diff = nowTime - initialTime;
+            var nowTime = Time.realtimeSinceStartup;
+            timeAsyncReadIsRunning = nowTime - initialTime;
 
-        } while (diff.Milliseconds < timeout);
+        } while (timeAsyncReadIsRunning < timeout);
 
         if (fail != null)
             fail();
@@ -127,7 +129,7 @@ public class ArduinoController : MonoBehaviour
 
 }
 
-#region Using Unity Events
+#region Implementing a custom UnityEvent
 
 [Serializable]
 public class ArduinoEvent
