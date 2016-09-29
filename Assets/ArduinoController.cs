@@ -3,6 +3,7 @@ using System.Collections;
 using System;
 using UnityEngine.Events;
 using System.IO.Ports;
+using Assets.LSL4Unity.Scripts;
 
 /// <summary>
 /// This class is inspired by http://www.alanzucconi.com/2015/10/07/how-to-integrate-arduino-with-unity/
@@ -17,10 +18,16 @@ public class ArduinoController : MonoBehaviour
     public int BaudRate = 9600;
     public string ComId = "COM3"; // default for arduino uno
 
+    public int readingTimeout = 50;
+
     private SerialPort stream;
+
+    private LSLMarkerStream marker;
 
     void Start()
     {
+        marker = GetComponent<LSLMarkerStream>();
+
         try
         {
             stream = new SerialPort(ComId, BaudRate);
@@ -31,7 +38,7 @@ public class ArduinoController : MonoBehaviour
             Debug.Log("Can't communicate over Port: " + ComId);
         }
 
-        stream.ReadTimeout = 50;
+        stream.ReadTimeout = readingTimeout;
         stream.Open();
 
         StartCoroutine(
@@ -39,6 +46,8 @@ public class ArduinoController : MonoBehaviour
                 // lambda expression - anonymous function
                 (incomingString) =>
                 {
+                    marker.Write("Recieve response from Arduino { " + incomingString + " }");
+
                     if (WhenArduinoHasAResult.GetPersistentEventCount() > 0)
                     {
                         ArduinoEvent evt = Parse(incomingString);
@@ -52,7 +61,7 @@ public class ArduinoController : MonoBehaviour
 
     private ArduinoEvent Parse(string incomingString)
     {
-        Debug.Log("Recieved from Arduino: " + incomingString);
+        //Debug.Log("Recieved from Arduino: " + incomingString);
 
         ArduinoEvent evt = new ArduinoEvent();
 
@@ -71,7 +80,7 @@ public class ArduinoController : MonoBehaviour
             return;
         }
 
-        Debug.Log("Send Signal to Arduino...");
+        marker.Write("Enable Response on Arduino");
 
         stream.WriteLine("Await");
         stream.BaseStream.Flush();
@@ -84,7 +93,8 @@ public class ArduinoController : MonoBehaviour
             Debug.LogError("Connection to Arduino not available... Discard Command");
             return;
         }
-            Debug.Log("Reset on Arduino...");
+
+        marker.Write("Reset To Arduino");
 
         stream.WriteLine("Reset");
         stream.BaseStream.Flush();

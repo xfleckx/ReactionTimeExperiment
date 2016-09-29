@@ -2,6 +2,8 @@
 using System.Collections;
 using UnityEngine.Assertions;
 using System;
+using Assets.LSL4Unity.Scripts;
+
 public class Experiment : MonoBehaviour {
 
 	public const string MISS = "MISS";
@@ -41,7 +43,13 @@ public class Experiment : MonoBehaviour {
 	private bool awaitAnButtonPress;
 	private bool aButtonHasBeenPressed;
 
+	private LSLMarkerStream marker;
+
 	void Start () {
+
+		marker = GetComponent<LSLMarkerStream>();
+
+		Assert.IsNotNull(marker);
 
 		Assert.IsNotNull(focusCross);
 		Assert.IsNotNull(targetSphere);
@@ -66,6 +74,8 @@ public class Experiment : MonoBehaviour {
 
 	IEnumerator RunExperiment()
 	{
+		marker.Write("Start Experiment");
+
 		yield return new WaitForSecondsRealtime(3f);
 
 		yield return RunTrials();
@@ -75,11 +85,14 @@ public class Experiment : MonoBehaviour {
 
 	IEnumerator RunTrials()
 	{
+		marker.Write("Begin Trials");
 		while(currentTrialCount > 0)
 		{
 			focusCross.SetActive(true);
 
 			yield return new WaitForSecondsRealtime(timeShowingFocusCross);
+
+			marker.Write("Enable Sphere");
 
 			focusCross.SetActive(false);
 
@@ -91,9 +104,12 @@ public class Experiment : MonoBehaviour {
 
 			yield return new WaitForSecondsRealtime(timeToWaitForTheNextColorChange);
 
+			marker.Write("Change Color");
 			currentMaterial = ChangeColor();
 
 			yield return new WaitForEndOfFrame();
+
+			marker.Write("End of Frame");
 
 			dataRecorder.Write(new string[] { Time.realtimeSinceStartup.ToString(), "Await button press" });
 
@@ -112,7 +128,7 @@ public class Experiment : MonoBehaviour {
 
 			currentTrialCount--;
 		}
-
+		marker.Write("End Trials");
 		dataRecorder.WriteEverythingToFile();
 	}
 
@@ -130,9 +146,9 @@ public class Experiment : MonoBehaviour {
 	private void BeginAwaitAnButtonPress()
 	{
 		awaitAnButtonPress = true;
-
+		marker.Write("Begin Send Signal");
 		arduino.AwaitButtonPress();
-
+		marker.Write("End Send Signal");
 		aButtonHasBeenPressed = false;
 	}
 
